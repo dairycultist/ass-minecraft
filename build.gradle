@@ -1,5 +1,4 @@
 plugins {
-  id "java"
   id "application"
 }
 
@@ -10,9 +9,9 @@ sourceSets {
     java {
         srcDirs = ["src"]
     }
-    // resources {
-    //     srcDirs = ['custom/resources/path']
-    // }
+    resources {
+        srcDirs = ["res"]
+    }
   }
 }
 
