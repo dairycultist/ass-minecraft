@@ -1,0 +1,35 @@
+plugins {
+  id "java"
+  id "application"
+}
+
+mainClassName = "Main"
+
+sourceSets {
+  main {
+    java {
+        srcDirs = ["src"]
+    }
+    // resources {
+    //     srcDirs = ['custom/resources/path']
+    // }
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+  implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+
+  implementation "org.lwjgl:lwjgl:$lwjgl3Version"
+  implementation "org.lwjgl:lwjgl-glfw:$lwjgl3Version"
+  implementation "org.lwjgl:lwjgl-jemalloc:$lwjgl3Version"
+  implementation "org.lwjgl:lwjgl-openal:$lwjgl3Version"
+  implementation "org.lwjgl:lwjgl-opengl:$lwjgl3Version"
+  implementation "org.lwjgl:lwjgl-stb:$lwjgl3Version"
+}
