@@ -9,11 +9,11 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 // import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 // https://xoppa.github.io/blog/basic-3d-using-libgdx/
@@ -23,9 +23,9 @@ public class Window extends ApplicationAdapter {
 
     public PerspectiveCamera camera;
     public ModelBatch modelBatch;
-    public Model model;
-    public ModelInstance instance;
     public Environment environment;
+
+    public TileWorld world;
 
     @Override
     public void create() {
@@ -43,11 +43,7 @@ public class Window extends ApplicationAdapter {
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-        ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(5f, 5f, 5f, 
-            new Material(ColorAttribute.createDiffuse(Color.GREEN)),
-            Usage.Position | Usage.Normal);
-        instance = new ModelInstance(model);
+        world = new TileWorld();
     }
 
     @Override
@@ -56,17 +52,19 @@ public class Window extends ApplicationAdapter {
         ScreenUtils.clear(0f, 0f, 0f, 1f, true);
 
         modelBatch.begin(camera);
-        modelBatch.render(instance, environment);
+        for (ModelInstance instance : world.modelInstances()) {
+            modelBatch.render(instance, environment);
+        }
         modelBatch.end();
 
-        instance.transform.rotate(0.0f, 1.0f, 0.0f, 0.5f);
+        // chunk.getModelInstance().transform.rotate(0.0f, 1.0f, 0.0f, 0.5f);
     }
     
     @Override
     public void dispose() {
 
         modelBatch.dispose();
-        model.dispose();
+        world.dispose();
     }
     
     @Override
