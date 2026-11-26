@@ -9,13 +9,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader; // remove
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-/** Central point for aaaaall mod assets. Sets up just tile stuff for now (but also other stuff like items in the future) from the data from the mods/ folder */
+/** Central point for aaaaall mod assets. Sets up just tile stuff for now (but also other stuff like
+ * items in the future) from the data from the mods/ folder
+ */
 public class ModLoader {
 
     public static TextureAtlas tileAtlas; // remember to dispose me

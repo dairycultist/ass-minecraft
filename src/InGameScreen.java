@@ -25,19 +25,22 @@ import java.util.Random;
 public class InGameScreen implements Screen {
 
     public PerspectiveCamera camera;
-    public float cameraPitch, cameraYaw;
 
     public ModelBatch modelBatch;
     public Environment environment;
 
     public TileWorld world;
 
+    public Entity player;
+
     public InGameScreen() {
 
         modelBatch = new ModelBatch();
 
+        player = new Entity(0.3f, 1.7f);
+        player.y = 20f;
+
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(20f, 20f, 20f);
         camera.lookAt(0f, 0f, 0f);
         camera.near = 0.01f;
         camera.far = 300f;
@@ -52,9 +55,9 @@ public class InGameScreen implements Screen {
         // init basic world terrain for testing
         Random rand = new Random();
 
-        for (int y = -15; y < 15; y++) {
-            for (int z = -15; z < 15; z++) {
-                for (int x = -15; x < 15; x++) {
+        for (int y = 0; y < 8; y++) {
+            for (int z = -30; z < 30; z++) {
+                for (int x = -30; x < 30; x++) {
 
                     world.setTile(rand.nextInt(0, ModLoader.tiles.length), x, y, z);
                 }
@@ -79,36 +82,34 @@ public class InGameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
             Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
 
-        double angle = cameraYaw * Math.PI / 180.0;
-
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            camera.position.x -= 6.0 * Math.sin(angle) * delta;
-            camera.position.z -= 6.0 * Math.cos(angle) * delta;
+            player.x -= 6.0 * Math.sin(player.yaw) * delta;
+            player.z -= 6.0 * Math.cos(player.yaw) * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            camera.position.x += 6.0 * Math.sin(angle) * delta;
-            camera.position.z += 6.0 * Math.cos(angle) * delta;
+            player.x += 6.0 * Math.sin(player.yaw) * delta;
+            player.z += 6.0 * Math.cos(player.yaw) * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            camera.position.x -= 6.0 * Math.cos(angle) * delta;
-            camera.position.z += 6.0 * Math.sin(angle) * delta;
+            player.x -= 6.0 * Math.cos(player.yaw) * delta;
+            player.z += 6.0 * Math.sin(player.yaw) * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            camera.position.x += 6.0 * Math.cos(angle) * delta;
-            camera.position.z -= 6.0 * Math.sin(angle) * delta;
+            player.x += 6.0 * Math.cos(player.yaw) * delta;
+            player.z -= 6.0 * Math.sin(player.yaw) * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            camera.position.y += 6.0 * delta;
+            player.y += 6.0 * delta;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-            camera.position.y -= 6.0 * delta;
+            player.y -= 6.0 * delta;
         }
 
         // camera rotation
-        cameraPitch += -Gdx.input.getDeltaY() * 30f * delta;
-        cameraYaw   += -Gdx.input.getDeltaX() * 30f * delta;
+        player.pitch += -Gdx.input.getDeltaY() * 0.2f * delta;
+        player.yaw   += -Gdx.input.getDeltaX() * 0.2f * delta;
 
-        cameraPitch = Math.min(Math.max(cameraPitch, -90), 90);
+        player.pitch = Math.min(Math.max(player.pitch, (float) -Math.PI / 2), (float) Math.PI / 2);
 
         camera.direction.x = 0;
         camera.direction.y = 0;
@@ -117,8 +118,9 @@ public class InGameScreen implements Screen {
         camera.up.y = 1;
         camera.up.z = 0;
         
-        camera.rotate(Vector3.X, cameraPitch);
-        camera.rotate(Vector3.Y, cameraYaw);
+        camera.rotate(Vector3.X, player.pitch * 180.0f / (float) Math.PI);
+        camera.rotate(Vector3.Y, player.yaw * 180.0f / (float) Math.PI);
+        camera.position.set(player.x, player.y + 1.5f, player.z);
         camera.update();
 
         ScreenUtils.clear(0f, 0f, 0f, 1f, true);
@@ -129,7 +131,7 @@ public class InGameScreen implements Screen {
         }
         modelBatch.end();
 
-        // chunk.getModelInstance().transform.rotate(0.0f, 1.0f, 0.0f, 0.5f);
+        // modelInstance.transform.rotate(0.0f, 1.0f, 0.0f, 0.5f);
     }
 
     @Override
