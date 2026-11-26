@@ -56,9 +56,9 @@ public class Window extends ApplicationAdapter {
         // init basic world terrain for testing
         Random rand = new Random();
 
-        for (int y = 0; y < 8; y++) {
-            for (int z = 0; z < 8; z++) {
-                for (int x = 0; x < 8; x++) {
+        for (int y = 0; y < 30; y++) {
+            for (int z = 0; z < 30; z++) {
+                for (int x = 0; x < 30; x++) {
 
                     world.setTile(rand.nextBoolean() ? 1 : 0, x, y, z);
                 }

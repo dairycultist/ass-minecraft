@@ -25,9 +25,6 @@ public class TileWorld implements Disposable {
 
         chunks = new ArrayList<Chunk>();
 
-        // add test chunk
-        chunks.add(new Chunk(0, 0, 0));
-
         // set up chunk model instances iterable
         iter = new Iterable<ModelInstance>() {
 
@@ -52,15 +49,24 @@ public class TileWorld implements Disposable {
         };
     }
 
-    /** returns true if successfully set tile, false otherwise (e.g. if no chunk exists there)
+    /** returns true if successfully set tile, false otherwise. but it creates a chunk if there isn't
+     * one already there to accomodate that tile so it never returns false right now.
      * if it returns true, it also means there is now at least one dirty chunk that needs remeshing
      */
     public boolean setTile(int tileId, int globalX, int globalY, int globalZ) {
 
         Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
-        if (chunk == null)
-            return false;
+        if (chunk == null) {
+            
+            chunk = new Chunk(
+                Math.floorDiv(globalX, Chunk.CHUNK_DIM),
+                Math.floorDiv(globalY, Chunk.CHUNK_DIM),
+                Math.floorDiv(globalZ, Chunk.CHUNK_DIM)
+            );
+            
+            chunks.add(chunk);
+        }
         
         chunk.tileIds[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
         chunk.dirty = true;
@@ -145,8 +151,8 @@ public class TileWorld implements Disposable {
 
             tileIds = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
 
-            model = new Model(); // remesh disposes the existing model before remeshing so give it one
-            remesh();
+            model = new Model(); // remesh disposes the existing model before remeshing, so give it one now so we don't NullPointerException
+            instance = new ModelInstance(model); // so drawing doesn't give a NullPointerException
         }
 
         boolean contains(int globalX, int globalY, int globalZ) {
@@ -183,7 +189,7 @@ public class TileWorld implements Disposable {
 
             model.dispose();
             model = modelBuilder.end();
-            instance = new ModelInstance(model);
+            instance = new ModelInstance(model, x, y, z);
         }
 
         @Override
