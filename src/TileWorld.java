@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 /** abstracts away chunks so you can just think about tile positions and not chunk boundaries and chunk spawning and stuff */
 public class TileWorld implements Disposable {
@@ -176,11 +177,14 @@ public class TileWorld implements Disposable {
                 Tile.material
             );
 
+            Random random = new Random();
+
             for (int y = 0; y < CHUNK_DIM; y++) {
                 for (int z = 0; z < CHUNK_DIM; z++) {
                     for (int x = 0; x < CHUNK_DIM; x++) {
 
-                        Tile.types[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z);
+                        random.setSeed(x * 3 + y * 5 + z * 7);
+                        Tile.types[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z, random);
                     }
                 }
             }

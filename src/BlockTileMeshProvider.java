@@ -1,8 +1,10 @@
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 
+import java.util.Random;
+
 public class BlockTileMeshProvider extends TileMeshProvider {
 
-    public void appendToBuilder(MeshPartBuilder builder, int localX, int localY, int localZ) {
+    public void appendToBuilder(MeshPartBuilder builder, int localX, int localY, int localZ, Random random) {
 
         // +y
         builder.rect(
