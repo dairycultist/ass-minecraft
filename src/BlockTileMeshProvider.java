@@ -4,6 +4,16 @@ import java.util.Random;
 
 public class BlockTileMeshProvider extends TileMeshProvider {
 
+    private final float u0, v0, u1, v1;
+
+    public BlockTileMeshProvider(float u0, float v0, float u1, float v1) {
+
+        this.u0 = u0;
+        this.v0 = v0;
+        this.u1 = u1;
+        this.v1 = v1;
+    }
+
     public void appendToBuilder(MeshPartBuilder builder, int localX, int localY, int localZ, Random random) {
 
         MeshPartBuilder.VertexInfo c00 = new MeshPartBuilder.VertexInfo();
@@ -11,10 +21,10 @@ public class BlockTileMeshProvider extends TileMeshProvider {
         MeshPartBuilder.VertexInfo c11 = new MeshPartBuilder.VertexInfo();
         MeshPartBuilder.VertexInfo c10 = new MeshPartBuilder.VertexInfo();
 
-        c00.setUV(0, 0);
-        c01.setUV(0, 1);
-        c11.setUV(1, 1);
-        c10.setUV(1, 0);
+        c00.setUV(u0, v0);
+        c01.setUV(u0, v1);
+        c11.setUV(u1, v1);
+        c10.setUV(u1, v0);
 
         // +y
         c00.setPos(localX + 0, localY + 1, localZ + 0);
