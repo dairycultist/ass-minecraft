@@ -11,7 +11,6 @@ import com.badlogic.gdx.utils.Disposable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Random;
 
 /** abstracts away chunks so you can just think about tile positions and not chunk boundaries and stuff */
 public class TileWorld implements Disposable {
@@ -26,18 +25,8 @@ public class TileWorld implements Disposable {
 
         chunks = new ArrayList<Chunk>();
 
-        // add test chunk and test blocks in that chunk
-        Chunk c = new Chunk();
-        chunks.add(c);
-
-        Random rand = new Random();
-
-        for (int i = 0; i < c.blockIds.length; i++) {
-
-            c.blockIds[i] = rand.nextBoolean() ? 1 : 0;
-        }
-
-        c.remesh();
+        // add test chunk
+        chunks.add(new Chunk(0, 0, 0));
 
         // set up chunk model instances iterable
         iter = new Iterable<ModelInstance>() {
@@ -63,6 +52,32 @@ public class TileWorld implements Disposable {
         };
     }
 
+    /** returns true if successfully set tile, false otherwise (e.g. if no chunk exists there)
+     * if it returns true, it also means there is now at least one dirty chunk that needs remeshing
+     */
+    public boolean setTile(int tileId, int worldX, int worldY, int worldZ) {
+
+        Chunk chunk = chunks.get(0);
+
+        chunk.tileIds[worldX + worldZ * Chunk.CHUNK_DIM + worldY * Chunk.CHUNK_DIM * Chunk.CHUNK_DIM] = tileId;
+
+        chunk.dirty = true;
+
+        return true;
+    }
+
+    public void remeshDirtyChunks() {
+
+        for (Chunk chunk : chunks) {
+
+            if (chunk.dirty) {
+
+                chunk.remesh();
+                chunk.dirty = false;
+            }
+        }
+    }
+
     public Iterable<ModelInstance> modelInstances() {
         return iter;
     }
@@ -84,14 +99,28 @@ public class TileWorld implements Disposable {
 
         Model model;
         ModelInstance instance;
-        int[] blockIds;
+        int[] tileIds;
+        boolean dirty;
+        final int x, y, z;
 
-        Chunk() {
+        Chunk(int chunkX, int chunkY, int chunkZ) {
 
-            blockIds = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
+            x = chunkX * CHUNK_DIM;
+            y = chunkY * CHUNK_DIM;
+            z = chunkZ * CHUNK_DIM;
+
+            tileIds = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
 
             model = new Model(); // remesh disposes the existing model before remeshing so give it one
             remesh();
+        }
+
+        boolean contains(int globalX, int globalY, int globalZ) {
+
+            return globalX >= x && globalY >= y && globalZ >= globalZ
+                && globalX < x + CHUNK_DIM
+                && globalY < y + CHUNK_DIM
+                && globalZ < z + CHUNK_DIM;
         }
 
         void remesh() {
@@ -112,7 +141,7 @@ public class TileWorld implements Disposable {
                 for (int z = 0; z < CHUNK_DIM; z++) {
                     for (int x = 0; x < CHUNK_DIM; x++) {
 
-                        if (blockIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM] == 1)
+                        if (tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM] == 1)
                             provider.appendToBuilder(meshBuilder, x, y, z);
                     }
                 }

@@ -16,6 +16,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 // import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.Random;
+
 // https://xoppa.github.io/blog/basic-3d-using-libgdx/
 // https://github.com/libgdx/libgdx/
 
@@ -44,6 +46,20 @@ public class Window extends ApplicationAdapter {
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
         world = new TileWorld();
+
+        // init basic world terrain for testing
+        Random rand = new Random();
+
+        for (int y = 0; y < 8; y++) {
+            for (int z = 0; z < 8; z++) {
+                for (int x = 0; x < 8; x++) {
+
+                    world.setTile(rand.nextBoolean() ? 1 : 0, x, y, z);
+                }
+            }
+        }
+
+        world.remeshDirtyChunks();
     }
 
     @Override
