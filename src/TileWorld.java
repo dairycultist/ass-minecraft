@@ -1,6 +1,3 @@
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
@@ -15,13 +12,10 @@ import java.util.Iterator;
 /** abstracts away chunks so you can just think about tile positions and not chunk boundaries and chunk spawning and stuff */
 public class TileWorld implements Disposable {
 
-    private Material material;
     private ArrayList<Chunk> chunks;
     private final Iterable<ModelInstance> iter;
 
     public TileWorld() {
-
-        material = new Material(ColorAttribute.createDiffuse(Color.GREEN));
 
         chunks = new ArrayList<Chunk>();
 
@@ -179,7 +173,7 @@ public class TileWorld implements Disposable {
                 "terrain",
                 GL20.GL_TRIANGLES,
                 Usage.Position | Usage.Normal,
-                material
+                Tile.material
             );
 
             TileMeshProvider provider = new BlockTileMeshProvider();
