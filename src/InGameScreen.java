@@ -39,7 +39,7 @@ public class InGameScreen implements Screen {
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.position.set(20f, 20f, 20f);
         camera.lookAt(0f, 0f, 0f);
-        camera.near = 1f;
+        camera.near = 0.01f;
         camera.far = 300f;
         camera.update();
 
@@ -56,7 +56,7 @@ public class InGameScreen implements Screen {
             for (int z = -15; z < 15; z++) {
                 for (int x = -15; x < 15; x++) {
 
-                    world.setTile(rand.nextBoolean() ? 1 : 0, x, y, z);
+                    world.setTile(rand.nextInt(0, Tile.types.length), x, y, z);
                 }
             }
         }
