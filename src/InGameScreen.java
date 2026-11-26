@@ -31,13 +31,13 @@ public class InGameScreen implements Screen {
 
     public TileWorld world;
 
-    public Entity player;
+    public Player player;
 
     public InGameScreen() {
 
         modelBatch = new ModelBatch();
 
-        player = new Entity(0.3f, 1.7f);
+        player = new Player(0.3f, 1.7f);
         player.y = 20f;
 
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -82,35 +82,9 @@ public class InGameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
             Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
 
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            player.x -= 6.0 * Math.sin(player.yaw) * delta;
-            player.z -= 6.0 * Math.cos(player.yaw) * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            player.x += 6.0 * Math.sin(player.yaw) * delta;
-            player.z += 6.0 * Math.cos(player.yaw) * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            player.x -= 6.0 * Math.cos(player.yaw) * delta;
-            player.z += 6.0 * Math.sin(player.yaw) * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            player.x += 6.0 * Math.cos(player.yaw) * delta;
-            player.z -= 6.0 * Math.sin(player.yaw) * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            player.y += 6.0 * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-            player.y -= 6.0 * delta;
-        }
+        player.process(delta);
 
-        // camera rotation
-        player.pitch += -Gdx.input.getDeltaY() * 0.2f * delta;
-        player.yaw   += -Gdx.input.getDeltaX() * 0.2f * delta;
-
-        player.pitch = Math.min(Math.max(player.pitch, (float) -Math.PI / 2), (float) Math.PI / 2);
-
+        // align camera with player
         camera.direction.x = 0;
         camera.direction.y = 0;
         camera.direction.z = -1;

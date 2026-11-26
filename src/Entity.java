@@ -28,4 +28,6 @@ public class Entity {
         return aabb;
     }
 
+    public void process(float delta) {
+    }
 }
