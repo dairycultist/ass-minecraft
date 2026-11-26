@@ -11,6 +11,8 @@ import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
 
 public class Tile {
@@ -42,6 +44,9 @@ public class Tile {
 
         int tileTextureCount = 0;
 
+        // TODO a helper function that takes a lambda expression (String namespace, String line) => {}
+        // ignores comments
+
         // iterate over all the mods, getting data on TILE TEXTURES
         for (FileHandle modDir : Gdx.files.local("mods/").list()) {
 
@@ -61,12 +66,17 @@ public class Tile {
                     while ((line = reader.readLine()) != null && !line.startsWith("#tileTextures")) {}
                     while ((line = reader.readLine()) != null && !line.startsWith("#end")) {
 
+                        if (line.startsWith("//"))
+                            continue;
+
                         String[] parts = line.split("=");
+                        parts[0] = parts[0].trim();
+                        parts[1] = parts[1].trim();
 
                         BufferedImage image = ImageIO.read(Gdx.files.local("mods/" + modDir.name() + "/" + parts[1]).file());
 
                         if (image != null) {
-                            packer.addImage(image, parts[0]);
+                            packer.addImage(image, parts[0]); // TODO remember namespace
                             tileTextureCount++;
                         } else {
                             throw new IOException("Could not load tile texture.");
@@ -98,6 +108,10 @@ public class Tile {
 
 
         // SEPARATE CODE STARTS! we should probably split it into two separate functions for tangy code separation
+        ArrayList<Tile> typesConstruct = new ArrayList<Tile>();
+
+        // air is always the first tile type
+        typesConstruct.add(new Tile(new EmptyTileMeshProvider()));
 
         // load tile atlas
         atlas = new TextureAtlas(Gdx.files.local("atlas/tile.atlas"));
@@ -117,24 +131,52 @@ public class Tile {
                 BufferedReader reader = modFile.reader(1024);
 
                 try {
-                    System.out.println(reader.readLine());
+                    
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+
+                        if (line.startsWith("#tileType")) {
+
+                            String name = null, model = null, tex0 = null;
+
+                            while ((line = reader.readLine()) != null && !line.startsWith("#end")) {
+
+                                if (line.startsWith("//"))
+                                    continue;
+
+                                String[] parts = line.split("=");
+                                parts[0] = parts[0].trim();
+                                parts[1] = parts[1].trim();
+                                
+                                if (parts[0].equals("name")) {
+                                    name = parts[1];
+                                } else if (parts[0].equals("model")) {
+                                    model = parts[1];
+                                } else if (parts[0].equals("tex0")) {
+                                    tex0 = parts[1];
+                                }
+                            }
+
+                            if (name == null || model == null || tex0 == null) {
+
+                                System.out.println("Warning: A tile was not loaded because it was missing necessary parameters!");
+
+                            } else {
+
+                                TextureAtlas.AtlasRegion region = atlas.findRegion(tex0); // TODO remember namespace
+
+                                typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
+                            }
+                        }
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                // // findRegion is not very fast, so the value returned should be stored rather than calling this method each frame
-                // TextureAtlas.AtlasRegion region = atlas.findRegion("test");
-
-                // System.out.println(region.getU() + " " + region.getV() + " / " + region.getU2() + " " + region.getV2());
             }
         }
 
-
-
-
-        types = new Tile[] {
-            new Tile(new EmptyTileMeshProvider()),
-            new Tile(new BlockTileMeshProvider(0.03125f, 0.03125f, 0.53125f, 0.53125f))
-        };
+        types = typesConstruct.toArray(new Tile[0]);
     }
 }
