@@ -176,14 +176,11 @@ public class TileWorld implements Disposable {
                 Tile.material
             );
 
-            TileMeshProvider provider = new BlockTileMeshProvider();
-
             for (int y = 0; y < CHUNK_DIM; y++) {
                 for (int z = 0; z < CHUNK_DIM; z++) {
                     for (int x = 0; x < CHUNK_DIM; x++) {
 
-                        if (tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM] == 1)
-                            provider.appendToBuilder(meshBuilder, x, y, z);
+                        Tile.types[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z);
                     }
                 }
             }
