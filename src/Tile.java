@@ -55,25 +55,27 @@ public class Tile {
                 BufferedReader reader = modFile.reader(1024);
 
                 try {
-                    System.out.println(reader.readLine());
+
+                    String line;
+
+                    while ((line = reader.readLine()) != null && !line.startsWith("#tileTextures")) {}
+                    while ((line = reader.readLine()) != null && !line.startsWith("#end")) {
+
+                        String[] parts = line.split("=");
+
+                        BufferedImage image = ImageIO.read(Gdx.files.local("mods/" + modDir.name() + "/" + parts[1]).file());
+
+                        if (image != null) {
+                            packer.addImage(image, parts[0]);
+                            tileTextureCount++;
+                        } else {
+                            throw new IOException("Could not load tile texture.");
+                        }
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                // try {
-
-                //     BufferedImage image = ImageIO.read(Gdx.files.local("mods/vanilla/test.png").file());
-
-                //     if (image != null) {
-                //         packer.addImage(image, "test");
-                //         tileTextureCount++;
-                //     } else {
-                //         throw new IOException("Could not load tile texture.");
-                //     }
-
-                // } catch (IOException e) {
-                //     e.printStackTrace();
-                // }
             }
         }
 
@@ -83,7 +85,7 @@ public class Tile {
             System.exit(0);
         }
 
-        // save packed atlas to file and then immediately load it again
+        // save packed atlas to file
         FileHandle atlasDir = Gdx.files.local("atlas/");
         
         if (atlasDir.exists()) {
@@ -93,6 +95,11 @@ public class Tile {
         }
         packer.pack(atlasDir.file(), "tile");
 
+
+
+        // SEPARATE CODE STARTS! we should probably split it into two separate functions for tangy code separation
+
+        // load tile atlas
         atlas = new TextureAtlas(Gdx.files.local("atlas/tile.atlas"));
 
         material.set(TextureAttribute.createDiffuse(atlas.getRegions().get(0).getTexture()));
