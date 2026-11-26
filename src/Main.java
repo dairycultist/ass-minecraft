@@ -1,5 +1,6 @@
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.Game;
 
 public class Main {
 
@@ -12,6 +13,15 @@ public class Main {
         config.useVsync(true);
         config.setForegroundFPS(60);
 
-        new Lwjgl3Application(new Window(), config);
+        Game game = new Game() {
+
+            @Override
+            public void create() {
+
+                setScreen(new InGameScreen());
+            }
+        };
+
+        new Lwjgl3Application(game, config);
     }
 }

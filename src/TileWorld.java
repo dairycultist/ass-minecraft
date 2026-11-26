@@ -12,7 +12,7 @@ import com.badlogic.gdx.utils.Disposable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/** abstracts away chunks so you can just think about tile positions and not chunk boundaries and stuff */
+/** abstracts away chunks so you can just think about tile positions and not chunk boundaries and chunk spawning and stuff */
 public class TileWorld implements Disposable {
 
     private Material material;
@@ -25,7 +25,6 @@ public class TileWorld implements Disposable {
 
         chunks = new ArrayList<Chunk>();
 
-        // set up chunk model instances iterable
         iter = new Iterable<ModelInstance>() {
 
             @Override
@@ -47,6 +46,13 @@ public class TileWorld implements Disposable {
                 };
             }
         };
+    }
+
+    /** spawns (maybe queues for spawning) in chunks that are within blockDistance
+     * of the global position, and despawns chunks outside of it
+     * */
+    public void focusAround(int globalX, int globalY, int globalZ, int blockDistance) {
+
     }
 
     /** returns true if successfully set tile, false otherwise. but it creates a chunk if there isn't
@@ -118,6 +124,7 @@ public class TileWorld implements Disposable {
         }
     }
 
+    /** returns an iterable you can iterate over to draw all the model instances of this tile world */
     public Iterable<ModelInstance> modelInstances() {
         return iter;
     }
