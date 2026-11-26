@@ -55,15 +55,43 @@ public class TileWorld implements Disposable {
     /** returns true if successfully set tile, false otherwise (e.g. if no chunk exists there)
      * if it returns true, it also means there is now at least one dirty chunk that needs remeshing
      */
-    public boolean setTile(int tileId, int worldX, int worldY, int worldZ) {
+    public boolean setTile(int tileId, int globalX, int globalY, int globalZ) {
 
-        Chunk chunk = chunks.get(0);
+        Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
-        chunk.tileIds[worldX + worldZ * Chunk.CHUNK_DIM + worldY * Chunk.CHUNK_DIM * Chunk.CHUNK_DIM] = tileId;
-
+        if (chunk == null)
+            return false;
+        
+        chunk.tileIds[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
         chunk.dirty = true;
 
         return true;
+    }
+
+    public int getTile() {
+
+        return 0;
+    }
+
+    private int globalToTileIndex(int globalX, int globalY, int globalZ) {
+
+        // localify the coordinates
+        globalX = Math.floorMod(globalX, Chunk.CHUNK_DIM);
+        globalY = Math.floorMod(globalY, Chunk.CHUNK_DIM);
+        globalZ = Math.floorMod(globalZ, Chunk.CHUNK_DIM);
+
+        return globalX + globalZ * Chunk.CHUNK_DIM + globalY * Chunk.CHUNK_DIM * Chunk.CHUNK_DIM;
+    }
+
+    private Chunk getChunkThatContains(int globalX, int globalY, int globalZ) {
+
+        for (Chunk chunk : chunks) {
+
+            if (chunk.contains(globalX, globalY, globalZ))
+                return chunk;
+        }
+
+        return null;
     }
 
     public void remeshDirtyChunks() {
@@ -99,7 +127,7 @@ public class TileWorld implements Disposable {
 
         Model model;
         ModelInstance instance;
-        int[] tileIds;
+        int[] tileIds; // at some point this will be more along the lines of "tile data" with, say, an int[2] corresponding to one tile, but whatever
         boolean dirty;
         final int x, y, z;
 
