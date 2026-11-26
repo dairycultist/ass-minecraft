@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 // import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.Random;
@@ -25,6 +26,8 @@ import java.util.Random;
 public class Window extends ApplicationAdapter {
 
     public PerspectiveCamera camera;
+    public float cameraPitch, cameraYaw;
+
     public ModelBatch modelBatch;
     public Environment environment;
 
@@ -32,6 +35,8 @@ public class Window extends ApplicationAdapter {
 
     @Override
     public void create() {
+
+        Gdx.input.setCursorCatched(true);
 
         modelBatch = new ModelBatch();
 
@@ -66,14 +71,25 @@ public class Window extends ApplicationAdapter {
     @Override
     public void render() {
 
-        double angle = Math.atan2(camera.direction.z, camera.direction.x);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
+            Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
+
+        double angle = cameraYaw * Math.PI / 180.0;
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            camera.position.x += 0.1 * Math.cos(angle);
-            camera.position.z += 0.1 * Math.sin(angle);
+            camera.position.x -= 0.1 * Math.sin(angle);
+            camera.position.z -= 0.1 * Math.cos(angle);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            camera.position.x += 0.1 * Math.sin(angle);
+            camera.position.z += 0.1 * Math.cos(angle);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             camera.position.x -= 0.1 * Math.cos(angle);
+            camera.position.z += 0.1 * Math.sin(angle);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            camera.position.x += 0.1 * Math.cos(angle);
             camera.position.z -= 0.1 * Math.sin(angle);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
@@ -82,14 +98,24 @@ public class Window extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
             camera.position.y -= 0.1;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            camera.rotate(1f, 0f, 1f, 0f);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            camera.rotate(-1f, 0f, 1f, 0f);
-        }
+
+        // camera rotation
+        cameraPitch += -Gdx.input.getDeltaY() * 0.5f;
+        cameraYaw   += -Gdx.input.getDeltaX() * 0.5f;
+
+        cameraPitch = Math.min(Math.max(cameraPitch, -90), 90);
+
+        camera.direction.x = 0;
+        camera.direction.y = 0;
+        camera.direction.z = -1;
+        camera.up.x = 0;
+        camera.up.y = 1;
+        camera.up.z = 0;
         
+        camera.rotate(Vector3.X, cameraPitch);
+        camera.rotate(Vector3.Y, cameraYaw);
         camera.update();
+
         ScreenUtils.clear(0f, 0f, 0f, 1f, true);
 
         modelBatch.begin(camera);
