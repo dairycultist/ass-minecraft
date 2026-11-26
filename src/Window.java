@@ -33,7 +33,7 @@ public class Window extends ApplicationAdapter {
         modelBatch = new ModelBatch();
 
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(10f, 10f, 10f);
+        camera.position.set(20f, 20f, 20f);
         camera.lookAt(0f, 0f, 0f);
         camera.near = 1f;
         camera.far = 300f;

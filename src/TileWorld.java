@@ -11,8 +11,9 @@ import com.badlogic.gdx.utils.Disposable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
-// abstracts away chunks so you can just think about tile positions and not chunk boundaries and stuff
+/** abstracts away chunks so you can just think about tile positions and not chunk boundaries and stuff */
 public class TileWorld implements Disposable {
 
     private Material material;
@@ -25,8 +26,18 @@ public class TileWorld implements Disposable {
 
         chunks = new ArrayList<Chunk>();
 
-        // add test chunk
-        chunks.add(new Chunk(material));
+        // add test chunk and test blocks in that chunk
+        Chunk c = new Chunk();
+        chunks.add(c);
+
+        Random rand = new Random();
+
+        for (int i = 0; i < c.blockIds.length; i++) {
+
+            c.blockIds[i] = rand.nextBoolean() ? 1 : 0;
+        }
+
+        c.remesh();
 
         // set up chunk model instances iterable
         iter = new Iterable<ModelInstance>() {
@@ -59,18 +70,31 @@ public class TileWorld implements Disposable {
     @Override
     public void dispose() {
         
-        for (Chunk chunk : chunks) {
-
+        for (Chunk chunk : chunks)
             chunk.dispose();
-        }
     }
 
+    /** cubic chunks, with block data ordered x,z,y
+     * there is a slight problem which is that Mesh(Part)Builder only supports 2^16 vertices.
+     * we might want to switch to manually constructing the mesh but for now I don't care
+    */
     private class Chunk implements Disposable {
+
+        static final int CHUNK_DIM = 8;
 
         Model model;
         ModelInstance instance;
+        int[] blockIds;
 
-        Chunk(Material material) {
+        Chunk() {
+
+            blockIds = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
+
+            model = new Model(); // remesh disposes the existing model before remeshing so give it one
+            remesh();
+        }
+
+        void remesh() {
 
             ModelBuilder modelBuilder = new ModelBuilder();
             modelBuilder.begin();
@@ -82,14 +106,19 @@ public class TileWorld implements Disposable {
                 material
             );
 
-            meshBuilder.rect(
-                -5f, 0f, -5f,
-                -5f, 0f,  5f,
-                5f, 0f,  5f,
-                5f, 0f, -5f,
-                0f, 1f,  0f
-            );
+            TileMeshProvider provider = new BlockTileMeshProvider();
 
+            for (int y = 0; y < CHUNK_DIM; y++) {
+                for (int z = 0; z < CHUNK_DIM; z++) {
+                    for (int x = 0; x < CHUNK_DIM; x++) {
+
+                        if (blockIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM] == 1)
+                            provider.appendToBuilder(meshBuilder, x, y, z);
+                    }
+                }
+            }
+
+            model.dispose();
             model = modelBuilder.end();
             instance = new ModelInstance(model);
         }
