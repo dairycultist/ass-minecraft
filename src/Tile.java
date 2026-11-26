@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
+import java.io.BufferedReader; // remove
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -42,54 +42,42 @@ public class Tile {
         settings.maxHeight = 4096;
         TexturePacker packer = new TexturePacker(settings);
 
-        int tileTextureCount = 0;
-
-        // TODO a helper function that takes a lambda expression (String namespace, String line) => {}
-        // ignores comments
-
         // iterate over all the mods, getting data on TILE TEXTURES
-        for (FileHandle modDir : Gdx.files.local("mods/").list()) {
+        final int[] tileTextureCount = { 0 };
+        final boolean[] insideTileTextures = { false };
 
-            if (modDir.isDirectory()) {
+        ModLoader.read((String namespace, String line, String modPath) -> {
 
-                FileHandle modFile = modDir.child("mod.txt");
+            if (insideTileTextures[0]) {
 
-                if (!modFile.exists())
-                    continue;
+                if (line.startsWith("#end")) {
 
-                BufferedReader reader = modFile.reader(1024);
-
-                try {
-
-                    String line;
-
-                    while ((line = reader.readLine()) != null && !line.startsWith("#tileTextures")) {}
-                    while ((line = reader.readLine()) != null && !line.startsWith("#end")) {
-
-                        if (line.startsWith("//"))
-                            continue;
-
-                        String[] parts = line.split("=");
-                        parts[0] = parts[0].trim();
-                        parts[1] = parts[1].trim();
-
-                        BufferedImage image = ImageIO.read(Gdx.files.local("mods/" + modDir.name() + "/" + parts[1]).file());
-
-                        if (image != null) {
-                            packer.addImage(image, parts[0]); // TODO remember namespace
-                            tileTextureCount++;
-                        } else {
-                            throw new IOException("Could not load tile texture.");
-                        }
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    insideTileTextures[0] = false;
+                    return;
                 }
-            }
-        }
 
-        if (tileTextureCount == 0) {
+                // each line has a texturename=filepath pair
+                String[] parts = line.split("=");
+                parts[0] = parts[0].trim();
+                parts[1] = parts[1].trim();
+
+                BufferedImage image = ImageIO.read(Gdx.files.local(modPath + parts[1]).file());
+
+                if (image != null) {
+
+                    packer.addImage(image, namespace + "/" + parts[0]);
+                    tileTextureCount[0]++;
+
+                } else {
+                    throw new IOException("Could not load tile texture.");
+                }
+
+            } else if (line.startsWith("#tileTextures")) {
+                insideTileTextures[0] = true;
+            }
+        });
+
+        if (tileTextureCount[0] == 0) {
 
             System.out.println("No mods added any tile textures, there's nothing to play!");
             System.exit(0);
@@ -119,63 +107,54 @@ public class Tile {
         material.set(TextureAttribute.createDiffuse(atlas.getRegions().get(0).getTexture()));
 
         // iterate over all the mods AGAIN, getting data on TILES
-        for (FileHandle modDir : Gdx.files.local("mods/").list()) {
+        final boolean[] insideTileType = { false };
+        final String[] name = { null };
+        final String[] model = { null };
+        final String[] tex0 = { null };
 
-            if (modDir.isDirectory()) {
+        ModLoader.read((String namespace, String line, String modPath) -> {
 
-                FileHandle modFile = modDir.child("mod.txt");
+            if (insideTileType[0]) {
 
-                if (!modFile.exists())
-                    continue;
+                if (line.startsWith("#end")) {
 
-                BufferedReader reader = modFile.reader(1024);
+                    // finish with this tile type
+                    if (name[0] == null || model[0] == null || tex0[0] == null) {
 
-                try {
-                    
-                    String line;
+                        System.out.println("Warning: A tile was not loaded because it was missing necessary parameters!");
 
-                    while ((line = reader.readLine()) != null) {
+                    } else {
 
-                        if (line.startsWith("#tileType")) {
+                        TextureAtlas.AtlasRegion region = atlas.findRegion(tex0[0]);
 
-                            String name = null, model = null, tex0 = null;
-
-                            while ((line = reader.readLine()) != null && !line.startsWith("#end")) {
-
-                                if (line.startsWith("//"))
-                                    continue;
-
-                                String[] parts = line.split("=");
-                                parts[0] = parts[0].trim();
-                                parts[1] = parts[1].trim();
-                                
-                                if (parts[0].equals("name")) {
-                                    name = parts[1];
-                                } else if (parts[0].equals("model")) {
-                                    model = parts[1];
-                                } else if (parts[0].equals("tex0")) {
-                                    tex0 = parts[1];
-                                }
-                            }
-
-                            if (name == null || model == null || tex0 == null) {
-
-                                System.out.println("Warning: A tile was not loaded because it was missing necessary parameters!");
-
-                            } else {
-
-                                TextureAtlas.AtlasRegion region = atlas.findRegion(tex0); // TODO remember namespace
-
-                                typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
-                            }
-                        }
+                        typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
                     }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    name[0] = null;
+                    model[0] = null;
+                    tex0[0] = null;
+
+                    insideTileType[0] = false;
+                    return;
                 }
+
+                // parse parameter of this tile type
+                String[] parts = line.split("=");
+                parts[0] = parts[0].trim();
+                parts[1] = parts[1].trim();
+                
+                if (parts[0].equals("name")) {
+                    name[0] = parts[1];
+                } else if (parts[0].equals("model")) {
+                    model[0] = parts[1];
+                } else if (parts[0].equals("tex0")) {
+                    tex0[0] = parts[1];
+                }
+
+            } else if (line.startsWith("#tileType")) {
+                insideTileType[0] = true;
             }
-        }
+        });
 
         types = typesConstruct.toArray(new Tile[0]);
     }
