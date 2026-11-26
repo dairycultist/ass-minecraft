@@ -1,21 +1,22 @@
 @vanilla
 
 // every mod.txt file must start with the namespace. you access stuff in the mod by doing namespace/name,
-// e.g. vanilla/test (the type is inferred by context, so you can have a tile and its texture have the same name)
+// e.g. vanilla/test (the type is inferred by context, so for example you can have a tile and its texture
+// have the same name)
 
 #tileTextures
-test=test.png
-test2=test2.png
+  test=test.png
+  test2=test2.png
 #end
 
 #tileType
-name=test
-model=BLOCK
-tex0=vanilla/test
+  name=test
+  model=BLOCK
+  tex0=vanilla/test
 #end
 
 #tileType
-name=test2
-model=BLOCK
-tex0=vanilla/test2
+  name=test2
+  model=BLOCK
+  tex0=vanilla/test2
 #end

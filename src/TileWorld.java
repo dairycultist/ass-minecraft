@@ -174,7 +174,7 @@ public class TileWorld implements Disposable {
                 "terrain",
                 GL20.GL_TRIANGLES,
                 Usage.Position | Usage.Normal | Usage.TextureCoordinates,
-                Tile.material
+                ModLoader.tileMaterial
             );
 
             Random random = new Random();
@@ -184,7 +184,7 @@ public class TileWorld implements Disposable {
                     for (int x = 0; x < CHUNK_DIM; x++) {
 
                         random.setSeed(x * 3 + y * 5 + z * 7);
-                        Tile.types[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z, random);
+                        ModLoader.tiles[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z, random);
                     }
                 }
             }

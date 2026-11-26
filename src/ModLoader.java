@@ -1,21 +1,164 @@
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 
-import java.io.BufferedReader;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader; // remove
 import java.io.IOException;
+import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
+
+/** Central point for aaaaall mod assets. Sets up just tile stuff for now (but also other stuff like items in the future) from the data from the mods/ folder */
 public class ModLoader {
+
+    public static TextureAtlas tileAtlas; // remember to dispose me
+    public static Material tileMaterial = new Material();
+
+    public static Tile[] tiles;
+
+    static {
+
+        // prepare to make a tile texture atlas https://libgdx.com/wiki/tools/texture-packer
+        TexturePacker.Settings settings = new TexturePacker.Settings();
+        settings.maxWidth = 4096; // we don't want it to make multiple pages, so let pages be huge
+        settings.maxHeight = 4096;
+        TexturePacker packer = new TexturePacker(settings);
+
+        // iterate over all the mods, getting data on TILE TEXTURES
+        final int[] tileTextureCount = { 0 };
+        final boolean[] insideTileTextures = { false };
+
+        ModLoader.read((String namespace, String line, String modPath) -> {
+
+            if (insideTileTextures[0]) {
+
+                if (line.startsWith("#end")) {
+
+                    insideTileTextures[0] = false;
+                    return;
+                }
+
+                // each line has a texturename=filepath pair
+                String[] parts = line.split("=");
+                parts[0] = parts[0].trim();
+                parts[1] = parts[1].trim();
+
+                BufferedImage image = ImageIO.read(Gdx.files.local(modPath + parts[1]).file());
+
+                if (image != null) {
+
+                    packer.addImage(image, namespace + "/" + parts[0]);
+                    tileTextureCount[0]++;
+
+                } else {
+                    throw new IOException("Could not load tile texture.");
+                }
+
+            } else if (line.startsWith("#tileTextures")) {
+                insideTileTextures[0] = true;
+            }
+        });
+
+        if (tileTextureCount[0] == 0) {
+
+            System.out.println("No mods added any tile textures, there's nothing to play!");
+            System.exit(0);
+        }
+
+        // save packed atlas to file
+        FileHandle atlasDir = Gdx.files.local("atlas/");
+        
+        if (atlasDir.exists()) {
+            atlasDir.emptyDirectory();
+        } else {
+            atlasDir.mkdirs();
+        }
+        packer.pack(atlasDir.file(), "tile");
+
+
+
+        // SEPARATE CODE STARTS! we should probably split it into two separate functions for tangy code separation
+        ArrayList<Tile> typesConstruct = new ArrayList<Tile>();
+
+        // air is always the first tile type
+        typesConstruct.add(new Tile(new EmptyTileMeshProvider()));
+
+        // load tile atlas
+        tileAtlas = new TextureAtlas(Gdx.files.local("atlas/tile.atlas"));
+
+        tileMaterial.set(TextureAttribute.createDiffuse(tileAtlas.getRegions().get(0).getTexture()));
+
+        // iterate over all the mods AGAIN, getting data on TILES
+        final boolean[] insideTileType = { false };
+        final String[] name = { null };
+        final String[] model = { null };
+        final String[] tex0 = { null };
+
+        ModLoader.read((String namespace, String line, String modPath) -> {
+
+            if (insideTileType[0]) {
+
+                if (line.startsWith("#end")) {
+
+                    // finish with this tile type
+                    if (name[0] == null || model[0] == null || tex0[0] == null) {
+
+                        System.out.println("Warning: A tile was not loaded because it was missing necessary parameters!");
+
+                    } else {
+
+                        TextureAtlas.AtlasRegion region = tileAtlas.findRegion(tex0[0]);
+
+                        typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
+                    }
+
+                    name[0] = null;
+                    model[0] = null;
+                    tex0[0] = null;
+
+                    insideTileType[0] = false;
+                    return;
+                }
+
+                // parse parameter of this tile type
+                String[] parts = line.split("=");
+                parts[0] = parts[0].trim();
+                parts[1] = parts[1].trim();
+                
+                if (parts[0].equals("name")) {
+                    name[0] = parts[1];
+                } else if (parts[0].equals("model")) {
+                    model[0] = parts[1];
+                } else if (parts[0].equals("tex0")) {
+                    tex0[0] = parts[1];
+                }
+
+            } else if (line.startsWith("#tileType")) {
+                insideTileType[0] = true;
+            }
+        });
+
+        tiles = typesConstruct.toArray(new Tile[0]);
+    }
+
+
+
+
 
     public interface ModFileReader {
 
         void run(String namespace, String line, String modPath) throws IOException;
     }
 
-    // TODO a helper function that takes a lambda expression
-    // ignores comments
-
-    /** Reads over every single mod file line by line. */
-    public static void read(ModFileReader lambda) {
+    /** Reads over every single mod file line by line. Ignores comments. Automatically parses out the namespace. */
+    private static void read(ModFileReader lambda) {
 
         for (FileHandle modDir : Gdx.files.local("mods/").list()) {
 

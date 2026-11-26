@@ -56,7 +56,7 @@ public class InGameScreen implements Screen {
             for (int z = -15; z < 15; z++) {
                 for (int x = -15; x < 15; x++) {
 
-                    world.setTile(rand.nextInt(0, Tile.types.length), x, y, z);
+                    world.setTile(rand.nextInt(0, ModLoader.tiles.length), x, y, z);
                 }
             }
         }
