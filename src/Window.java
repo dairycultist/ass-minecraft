@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 // import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.Random;
@@ -64,7 +65,31 @@ public class Window extends ApplicationAdapter {
 
     @Override
     public void render() {
+
+        double angle = Math.atan2(camera.direction.z, camera.direction.x);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            camera.position.x += 0.1 * Math.cos(angle);
+            camera.position.z += 0.1 * Math.sin(angle);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            camera.position.x -= 0.1 * Math.cos(angle);
+            camera.position.z -= 0.1 * Math.sin(angle);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            camera.position.y += 0.1;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+            camera.position.y -= 0.1;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            camera.rotate(1f, 0f, 1f, 0f);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            camera.rotate(-1f, 0f, 1f, 0f);
+        }
         
+        camera.update();
         ScreenUtils.clear(0f, 0f, 0f, 1f, true);
 
         modelBatch.begin(camera);

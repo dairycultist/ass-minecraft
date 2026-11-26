@@ -68,9 +68,15 @@ public class TileWorld implements Disposable {
         return true;
     }
 
-    public int getTile() {
+    /** returns the tile at the given position, or -1 if can't */
+    public int getTile(int globalX, int globalY, int globalZ) {
 
-        return 0;
+        Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
+
+        if (chunk == null)
+            return -1;
+        
+        return chunk.tileIds[globalToTileIndex(globalX, globalY, globalZ)];
     }
 
     private int globalToTileIndex(int globalX, int globalY, int globalZ) {
