@@ -173,7 +173,7 @@ public class TileWorld implements Disposable {
             MeshPartBuilder meshBuilder = modelBuilder.part(
                 "terrain",
                 GL20.GL_TRIANGLES,
-                Usage.Position | Usage.Normal,
+                Usage.Position | Usage.Normal | Usage.TextureCoordinates,
                 Tile.material
             );
 

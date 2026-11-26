@@ -1,12 +1,15 @@
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.Texture;
 
-// import com.badlogic.gdx.graphics.Texture;
+// built in texture atlas maker https://libgdx.com/wiki/tools/texture-packer
 
 public class Tile {
 
-    public static final Material material = new Material(ColorAttribute.createDiffuse(Color.GREEN));
+    public static final Material material = new Material();
 
     public static final Tile[] types = {
         new Tile(new EmptyTileMeshProvider()),
@@ -25,5 +28,9 @@ public class Tile {
 
     static {
         // load all the different types of tile, also assemble the texture atlas and mix it into our material
+
+        Texture texture = new Texture(Gdx.files.internal("test.png"));
+
+        material.set(TextureAttribute.createDiffuse(texture));
     }
 }
