@@ -97,7 +97,7 @@ public class TileWorld implements Disposable {
             chunks.add(chunk);
         }
         
-        chunk.globalSet(ModLoader.tileIdToIndex.get(id), globalX, globalY, globalZ);
+        chunk.globalSet(ModLoader.idToTile.get(id).index, globalX, globalY, globalZ);
         chunk.dirty = true;
 
         return true;
@@ -242,7 +242,7 @@ public class TileWorld implements Disposable {
         public final int x, y, z; // global
 
         // TODO also store metadata
-        private int tileId;
+        private int tileId; // replace with Tile
         private final Chunk source;
 
         private TileInstance(Chunk source, int x, int y, int z, int tileId) {

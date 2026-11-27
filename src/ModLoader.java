@@ -19,13 +19,16 @@ import javax.imageio.ImageIO;
 
 /** Central point for aaaaall mod assets. Sets up just tile stuff for now (but also other stuff like
  * items in the future) from the data from the mods/ folder
+ * 
+ * honest I'll probably make this not static later so you can (theoretically) have multiple mod
+ * configurations loaded at once. reduces spaghetti or something
  */
 public class ModLoader {
 
     public static TextureAtlas tileAtlas; // remember to dispose me
     public static Material tileMaterial;
     public static Tile[] tiles;
-    public static Map<String, Integer> tileIdToIndex;
+    public static Map<String, Tile> idToTile;
 
     static {
 
@@ -154,13 +157,13 @@ public class ModLoader {
 
     private static void loadTiles() {
 
-        tileIdToIndex = new HashMap<String, Integer>();
-
+        idToTile = new HashMap<String, Tile>();
         ArrayList<Tile> typesConstruct = new ArrayList<Tile>();
 
         // air is always the first tile type
-        typesConstruct.add(new Tile(new EmptyTileMeshProvider()));
-        tileIdToIndex.put(null, 0);
+        Tile airTile = new Tile(null, 0, new EmptyTileMeshProvider());
+        typesConstruct.add(airTile);
+        idToTile.put(null, airTile);
 
         // load tile atlas
         tileAtlas = new TextureAtlas(Gdx.files.local("atlas/tile.atlas"));
@@ -186,8 +189,12 @@ public class ModLoader {
 
                         TextureAtlas.AtlasRegion region = tileAtlas.findRegion(tex0[0]);
 
-                        typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
-                        tileIdToIndex.put(namespace + "/" + name[0], typesConstruct.size() - 1);
+                        String id = namespace + "/" + name[0];
+                        int index = typesConstruct.size();
+
+                        Tile tile = new Tile(id, index, new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2()));
+                        typesConstruct.add(tile);
+                        idToTile.put(id, tile);
                     }
 
                     name[0] = null;
