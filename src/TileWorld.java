@@ -62,7 +62,7 @@ public class TileWorld implements Disposable {
             for (int z = minZ; z <= maxZ; z++) {
                 for (int x = minX; x <= maxX; x++) {
             
-                    if (getTile(x, y, z).tile.id != null) // TEMP, for now any tile that isn't air is fully solid
+                    if (getTileInstance(x, y, z).tile.id != null) // TEMP, for now any tile that isn't air is fully solid
                         return true;
                 }
             }
@@ -78,34 +78,11 @@ public class TileWorld implements Disposable {
 
     }
 
-    /** Sets the tile at the given global position to the Tile represented by the id.
-     * After calling this function, at least 1 chunk will be dirty. A chunk is created
-     * to accomodate the tile if one does not already exist for the given global position.
-     */
-    public void setTile(String id, int globalX, int globalY, int globalZ) {
-
-        Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
-
-        if (chunk == null) {
-            
-            chunk = new Chunk(
-                Math.floorDiv(globalX, Chunk.CHUNK_DIM),
-                Math.floorDiv(globalY, Chunk.CHUNK_DIM),
-                Math.floorDiv(globalZ, Chunk.CHUNK_DIM)
-            );
-            
-            chunks.add(chunk);
-        }
-        
-        chunk.globalSet(ModLoader.idToTile.get(id).index, globalX, globalY, globalZ);
-        chunk.dirty = true;
-    }
-
     /** Returns a TileInstance representing the tile at the given global position.
      * May create a chunk to accomodate the tile, as TileInstances are also used for
      * setting tiles which requires they belong to a chunk.
     */
-    public TileInstance getTile(int globalX, int globalY, int globalZ) {
+    public TileInstance getTileInstance(int globalX, int globalY, int globalZ) {
 
         Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
@@ -120,7 +97,7 @@ public class TileWorld implements Disposable {
             chunks.add(chunk);
         }
         
-        return new TileInstance(chunk, globalX, globalY, globalZ);
+        return chunk.globalGet(globalX, globalY, globalZ);
     }
 
     private Chunk getChunkThatContains(int globalX, int globalY, int globalZ) {
@@ -178,7 +155,7 @@ public class TileWorld implements Disposable {
 
         Model model;
         ModelInstance instance;
-        int[] tileIds; // at some point this will be more along the lines of "tile data" with, say, an int[2] corresponding to one tile, but whatever
+        int[] tileData; // currently each entry is an int[1] just storing the tile's index, but eventually it might grow to include metadata and stuff
         boolean dirty;
         final int x, y, z;
 
@@ -188,18 +165,18 @@ public class TileWorld implements Disposable {
             y = chunkY * CHUNK_DIM;
             z = chunkZ * CHUNK_DIM;
 
-            tileIds = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
+            tileData = new int[CHUNK_DIM * CHUNK_DIM * CHUNK_DIM];
 
             model = new Model(); // remesh disposes the existing model before remeshing, so give it one now so we don't NullPointerException
             instance = new ModelInstance(model); // so drawing doesn't give a NullPointerException
         }
 
-        int globalGet(int globalX, int globalY, int globalZ) {
-            return tileIds[globalToTileIndex(globalX, globalY, globalZ)];
+        TileInstance globalGet(int globalX, int globalY, int globalZ) {
+            return new TileInstance(this, globalX, globalY, globalZ, ModLoader.tiles[tileData[globalToTileIndex(globalX, globalY, globalZ)]]);
         }
 
         void globalSet(int tileId, int globalX, int globalY, int globalZ) {
-            tileIds[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
+            tileData[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
         }
 
         boolean contains(int globalX, int globalY, int globalZ) {
@@ -229,7 +206,7 @@ public class TileWorld implements Disposable {
                     for (int x = 0; x < CHUNK_DIM; x++) {
 
                         random.setSeed(x * 3 + y * 5 + z * 7);
-                        ModLoader.tiles[tileIds[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z, random);
+                        ModLoader.tiles[tileData[x + z * CHUNK_DIM + y * CHUNK_DIM * CHUNK_DIM]].meshProvider.appendToBuilder(meshBuilder, x, y, z, random);
                     }
                 }
             }
@@ -263,18 +240,18 @@ public class TileWorld implements Disposable {
             this.tile = tile;
         }
 
-        private TileInstance(Chunk source, int globalX, int globalY, int globalZ) {
-            this(source, globalX, globalY, globalZ, ModLoader.tiles[source.globalGet(globalX, globalY, globalZ)]);
-        }
-
         public Tile getTile() {
             return tile;
         }
 
+        /** Sets the tile represented by this TileInstance to the Tile with the given id.
+         * After calling this function, at least 1 chunk will be dirty.
+         */
         public void setTile(String id) {
 
             tile = ModLoader.idToTile.get(id);
             source.globalSet(tile.index, x, y, z);
+            source.dirty = true;
         }
     }
 

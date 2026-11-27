@@ -59,7 +59,7 @@ public class InGameScreen implements Screen {
             for (int z = -30; z < 30; z++) {
                 for (int x = -30; x < 30; x++) {
 
-                    tileWorld.setTile(ModLoader.tiles[rand.nextInt(0, ModLoader.tiles.length)].id, x, y, z);
+                    tileWorld.getTileInstance(x, y, z).setTile(ModLoader.tiles[rand.nextInt(0, ModLoader.tiles.length)].id);
                 }
             }
         }
