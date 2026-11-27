@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
 
 import java.util.ArrayList;
@@ -41,6 +42,28 @@ public class TileWorld implements Disposable {
                 };
             }
         };
+    }
+
+    // TODO expose helper for raycasting tiles
+
+    public boolean collidesWithEntity(Entity entity) {
+
+        BoundingBox aabb = entity.getBoundingBox();
+
+        int minX = (int) Math.floor(aabb.min.x), minY = (int) Math.floor(aabb.min.y), minZ = (int) Math.floor(aabb.min.z);
+        int maxX = (int) Math.floor(aabb.max.x), maxY = (int) Math.floor(aabb.max.y), maxZ = (int) Math.floor(aabb.max.z);
+
+        for (int y = minY; y <= maxY; y++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int x = minX; x <= maxX; x++) {
+            
+                    if (getTile(x, y, z) > 0) // TEMP, for now any tile that isn't air or nonexistent is fully solid
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** spawns (maybe queues for spawning) in chunks that are within blockDistance

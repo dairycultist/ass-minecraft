@@ -4,6 +4,12 @@ import com.badlogic.gdx.math.Vector3;
 
 public class Entity {
 
+    // TODO make an EntityWorld class which exposes helpers for entity ray intersection and other global entity logic
+
+    // TODO GDX does raycast logic by just letting you check if a ray intersects with a bounding box, you gotta iterate yourself
+    // TODO we have to figure out a good way of casting rays to detect entities and tiles both separately and together
+    // Intersector.intersectRayBounds(...)
+
     public float x, y, z; // middle bottom of AABB
     public float pitch, yaw;
 
@@ -28,6 +34,6 @@ public class Entity {
         return aabb;
     }
 
-    public void process(float delta) {
+    public void process(float delta, TileWorld tileWorld) { // TODO pass EntityWorld
     }
 }

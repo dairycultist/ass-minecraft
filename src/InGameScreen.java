@@ -29,7 +29,7 @@ public class InGameScreen implements Screen {
     public ModelBatch modelBatch;
     public Environment environment;
 
-    public TileWorld world;
+    public TileWorld tileWorld;
 
     public Player player;
 
@@ -50,21 +50,21 @@ public class InGameScreen implements Screen {
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-        world = new TileWorld();
+        tileWorld = new TileWorld();
 
-        // init basic world terrain for testing
+        // init basic tileWorld terrain for testing
         Random rand = new Random();
 
         for (int y = 0; y < 8; y++) {
             for (int z = -30; z < 30; z++) {
                 for (int x = -30; x < 30; x++) {
 
-                    world.setTile(rand.nextInt(0, ModLoader.tiles.length), x, y, z);
+                    tileWorld.setTile(rand.nextInt(0, ModLoader.tiles.length), x, y, z);
                 }
             }
         }
 
-        world.remeshDirtyChunks();
+        tileWorld.remeshDirtyChunks();
     }
 
     @Override
@@ -82,7 +82,7 @@ public class InGameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
             Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
 
-        player.process(delta);
+        player.process(delta, tileWorld);
 
         // align camera with player
         camera.direction.x = 0;
@@ -100,7 +100,7 @@ public class InGameScreen implements Screen {
         ScreenUtils.clear(0f, 0f, 0f, 1f, true);
 
         modelBatch.begin(camera);
-        for (ModelInstance instance : world.modelInstances()) {
+        for (ModelInstance instance : tileWorld.modelInstances()) {
             modelBatch.render(instance, environment);
         }
         modelBatch.end();
@@ -128,6 +128,6 @@ public class InGameScreen implements Screen {
     public void dispose() {
 
         modelBatch.dispose();
-        world.dispose();
+        tileWorld.dispose();
     }
 }
