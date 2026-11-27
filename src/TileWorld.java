@@ -92,7 +92,7 @@ public class TileWorld implements Disposable {
             chunks.add(chunk);
         }
         
-        chunk.tileIds[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
+        chunk.globalSet(tileId, globalX, globalY, globalZ);
         chunk.dirty = true;
 
         return true;
@@ -106,17 +106,7 @@ public class TileWorld implements Disposable {
         if (chunk == null)
             return -1;
         
-        return chunk.tileIds[globalToTileIndex(globalX, globalY, globalZ)];
-    }
-
-    private int globalToTileIndex(int globalX, int globalY, int globalZ) {
-
-        // localify the coordinates
-        globalX = Math.floorMod(globalX, Chunk.CHUNK_DIM);
-        globalY = Math.floorMod(globalY, Chunk.CHUNK_DIM);
-        globalZ = Math.floorMod(globalZ, Chunk.CHUNK_DIM);
-
-        return globalX + globalZ * Chunk.CHUNK_DIM + globalY * Chunk.CHUNK_DIM * Chunk.CHUNK_DIM;
+        return chunk.globalGet(globalX, globalY, globalZ);
     }
 
     private Chunk getChunkThatContains(int globalX, int globalY, int globalZ) {
@@ -154,6 +144,16 @@ public class TileWorld implements Disposable {
             chunk.dispose();
     }
 
+    static int globalToTileIndex(int globalX, int globalY, int globalZ) {
+
+        // localify the coordinates
+        globalX = Math.floorMod(globalX, Chunk.CHUNK_DIM);
+        globalY = Math.floorMod(globalY, Chunk.CHUNK_DIM);
+        globalZ = Math.floorMod(globalZ, Chunk.CHUNK_DIM);
+
+        return globalX + globalZ * Chunk.CHUNK_DIM + globalY * Chunk.CHUNK_DIM * Chunk.CHUNK_DIM;
+    }
+
     /** cubic chunks, with block data ordered x,z,y
      * there is a slight problem which is that Mesh(Part)Builder only supports 2^16 vertices.
      * we might want to switch to manually constructing the mesh but for now I don't care
@@ -178,6 +178,14 @@ public class TileWorld implements Disposable {
 
             model = new Model(); // remesh disposes the existing model before remeshing, so give it one now so we don't NullPointerException
             instance = new ModelInstance(model); // so drawing doesn't give a NullPointerException
+        }
+
+        int globalGet(int globalX, int globalY, int globalZ) {
+            return tileIds[globalToTileIndex(globalX, globalY, globalZ)];
+        }
+
+        void globalSet(int tileId, int globalX, int globalY, int globalZ) {
+            tileIds[globalToTileIndex(globalX, globalY, globalZ)] = tileId;
         }
 
         boolean contains(int globalX, int globalY, int globalZ) {
@@ -220,6 +228,38 @@ public class TileWorld implements Disposable {
         @Override
         public void dispose() {
             model.dispose();
+        }
+    }
+
+    /** returned by stuff like TileWorld raycasting, makes manipulating the TileWorld faster */
+    public class TileInstance {
+
+        public final int x, y, z; // global
+
+        private int tileId;
+        private final Chunk source;
+
+        private TileInstance(Chunk source, int x, int y, int z, int tileId) {
+
+            this.source = source;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.tileId = tileId;
+        } 
+
+        private TileInstance(Chunk source, int x, int y, int z) {
+            this(source, x, y, z, source.globalGet(x, y, z));
+        }
+
+        public int get() {
+            return tileId;
+        }
+
+        public void set(int tileId) {
+
+            this.tileId = tileId;
+            source.globalSet(tileId, x, y, z);
         }
     }
 
