@@ -144,7 +144,7 @@ public class TileWorld implements Disposable {
             chunk.dispose();
     }
 
-    static int globalToTileIndex(int globalX, int globalY, int globalZ) {
+    private static int globalToTileIndex(int globalX, int globalY, int globalZ) {
 
         // localify the coordinates
         globalX = Math.floorMod(globalX, Chunk.CHUNK_DIM);

@@ -1,17 +1,15 @@
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.math.MathUtils;
 
-public class Player extends Entity {
+public class Player extends MovingEntity {
 
     public Player(float radius, float height) {
-
         super(radius, height);
     }
 
     @Override
     public void process(float delta, TileWorld tileWorld) {
-
-        super.process(delta, tileWorld);
 
         // direction
         pitch += -Gdx.input.getDeltaY() * 0.25f * delta;
@@ -20,42 +18,28 @@ public class Player extends Entity {
         pitch = Math.min(Math.max(pitch, (float) -Math.PI / 2), (float) Math.PI / 2);
 
         // movement
-        float prevX = x, prevY = y, prevZ = z;
-        float newX = x, newY = y, newZ = z;
+        float inputVertical = 0, inputHorizontal = 0;
         
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            newX -= 6.0 * Math.sin(yaw) * delta;
-            newZ -= 6.0 * Math.cos(yaw) * delta;
+            inputVertical += 1.0;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            newX += 6.0 * Math.sin(yaw) * delta;
-            newZ += 6.0 * Math.cos(yaw) * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            newX -= 6.0 * Math.cos(yaw) * delta;
-            newZ += 6.0 * Math.sin(yaw) * delta;
+            inputVertical -= 1.0;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            newX += 6.0 * Math.cos(yaw) * delta;
-            newZ -= 6.0 * Math.sin(yaw) * delta;
+            inputHorizontal += 1.0;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            newY += 6.0 * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-            newY -= 6.0 * delta;
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            inputHorizontal -= 1.0;
         }
 
-        x = newX;
-        if (tileWorld.collidesWithEntity(this))
-            x = prevX;
+        dx = MathUtils.lerp(dx, (float) (-inputVertical * Math.sin(yaw) +  inputHorizontal * Math.cos(yaw)) * 6.0f, 10.0f * delta);
+        dz = MathUtils.lerp(dz, (float) (-inputVertical * Math.cos(yaw) + -inputHorizontal * Math.sin(yaw)) * 6.0f, 10.0f * delta);
 
-        y = newY;
-        if (tileWorld.collidesWithEntity(this))
-            y = prevY;
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE) && isGrounded) {
+            dy = 10.0f;
+        }
         
-        z = newZ;
-        if (tileWorld.collidesWithEntity(this))
-            z = prevZ;
+        super.process(delta, tileWorld);
     }
 }
