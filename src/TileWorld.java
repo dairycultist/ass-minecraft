@@ -11,7 +11,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
-/** abstracts away chunks so you can just think about tile positions and not chunk boundaries and chunk spawning and stuff */
+/**
+ * abstracts away chunks so you can just think about tile positions and not chunk boundaries and chunk spawning and stuff
+ * 
+ * also abstracts away the internal representation of tiles, i.e. setting a tile takes in a string ID ("mymod:coolblock") instead
+ * of the automatically generated numerical one (plus separate values for metadata), and getting a tile returns a TileInstance
+ */
 public class TileWorld implements Disposable {
 
     private ArrayList<Chunk> chunks;
@@ -77,7 +82,7 @@ public class TileWorld implements Disposable {
      * one already there to accomodate that tile so it never returns false right now.
      * if it returns true, it also means there is now at least one dirty chunk that needs remeshing
      */
-    public boolean setTile(int tileId, int globalX, int globalY, int globalZ) {
+    public boolean setTile(String id, int globalX, int globalY, int globalZ) {
 
         Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
@@ -92,7 +97,7 @@ public class TileWorld implements Disposable {
             chunks.add(chunk);
         }
         
-        chunk.globalSet(tileId, globalX, globalY, globalZ);
+        chunk.globalSet(ModLoader.tileIdToIndex.get(id), globalX, globalY, globalZ);
         chunk.dirty = true;
 
         return true;
@@ -236,6 +241,7 @@ public class TileWorld implements Disposable {
 
         public final int x, y, z; // global
 
+        // TODO also store metadata
         private int tileId;
         private final Chunk source;
 

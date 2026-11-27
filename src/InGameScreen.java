@@ -55,11 +55,13 @@ public class InGameScreen implements Screen {
         // init basic tileWorld terrain for testing
         Random rand = new Random();
 
+        String[] tileIds = ModLoader.tileIdToIndex.keySet().toArray(new String[0]); // scuffed but just for testing
+
         for (int y = 0; y < 8; y++) {
             for (int z = -30; z < 30; z++) {
                 for (int x = -30; x < 30; x++) {
 
-                    tileWorld.setTile(rand.nextInt(0, ModLoader.tiles.length), x, y, z);
+                    tileWorld.setTile(tileIds[rand.nextInt(0, ModLoader.tiles.length)], x, y, z);
                 }
             }
         }

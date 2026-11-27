@@ -12,6 +12,8 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -23,6 +25,7 @@ public class ModLoader {
     public static TextureAtlas tileAtlas; // remember to dispose me
     public static Material tileMaterial;
     public static Tile[] tiles;
+    public static Map<String, Integer> tileIdToIndex;
 
     static {
 
@@ -151,10 +154,13 @@ public class ModLoader {
 
     private static void loadTiles() {
 
+        tileIdToIndex = new HashMap<String, Integer>();
+
         ArrayList<Tile> typesConstruct = new ArrayList<Tile>();
 
         // air is always the first tile type
         typesConstruct.add(new Tile(new EmptyTileMeshProvider()));
+        tileIdToIndex.put(null, 0);
 
         // load tile atlas
         tileAtlas = new TextureAtlas(Gdx.files.local("atlas/tile.atlas"));
@@ -181,6 +187,7 @@ public class ModLoader {
                         TextureAtlas.AtlasRegion region = tileAtlas.findRegion(tex0[0]);
 
                         typesConstruct.add(new Tile(new BlockTileMeshProvider(region.getU(), region.getV(), region.getU2(), region.getV2())));
+                        tileIdToIndex.put(namespace + "/" + name[0], typesConstruct.size() - 1);
                     }
 
                     name[0] = null;

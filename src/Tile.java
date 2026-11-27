@@ -7,6 +7,8 @@ public class Tile {
     // texture atlas index) which lets you use the same class for multiple tiles
     public final TileMeshProvider meshProvider;
 
+    // TODO collisionProvider (one method that takes in an entity + a TileInstance (so you get position and metadata) and returns a boolean)
+
     public Tile(TileMeshProvider meshProvider) {
         this.meshProvider = meshProvider;
     }
