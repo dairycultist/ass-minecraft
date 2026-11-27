@@ -62,7 +62,7 @@ public class TileWorld implements Disposable {
             for (int z = minZ; z <= maxZ; z++) {
                 for (int x = minX; x <= maxX; x++) {
             
-                    if (getTile(x, y, z) > 0) // TEMP, for now any tile that isn't air or nonexistent is fully solid
+                    if (getTile(x, y, z).tile.id != null) // TEMP, for now any tile that isn't air is fully solid
                         return true;
                 }
             }
@@ -78,11 +78,11 @@ public class TileWorld implements Disposable {
 
     }
 
-    /** returns true if successfully set tile, false otherwise. but it creates a chunk if there isn't
-     * one already there to accomodate that tile so it never returns false right now.
-     * if it returns true, it also means there is now at least one dirty chunk that needs remeshing
+    /** Sets the tile at the given global position to the Tile represented by the id.
+     * After calling this function, at least 1 chunk will be dirty. A chunk is created
+     * to accomodate the tile if one does not already exist for the given global position.
      */
-    public boolean setTile(String id, int globalX, int globalY, int globalZ) {
+    public void setTile(String id, int globalX, int globalY, int globalZ) {
 
         Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
@@ -99,19 +99,28 @@ public class TileWorld implements Disposable {
         
         chunk.globalSet(ModLoader.idToTile.get(id).index, globalX, globalY, globalZ);
         chunk.dirty = true;
-
-        return true;
     }
 
-    /** returns the tile at the given position, or -1 if can't */
-    public int getTile(int globalX, int globalY, int globalZ) {
+    /** Returns a TileInstance representing the tile at the given global position.
+     * May create a chunk to accomodate the tile, as TileInstances are also used for
+     * setting tiles which requires they belong to a chunk.
+    */
+    public TileInstance getTile(int globalX, int globalY, int globalZ) {
 
         Chunk chunk = getChunkThatContains(globalX, globalY, globalZ);
 
-        if (chunk == null)
-            return -1;
+        if (chunk == null) {
+            
+            chunk = new Chunk(
+                Math.floorDiv(globalX, Chunk.CHUNK_DIM),
+                Math.floorDiv(globalY, Chunk.CHUNK_DIM),
+                Math.floorDiv(globalZ, Chunk.CHUNK_DIM)
+            );
+            
+            chunks.add(chunk);
+        }
         
-        return chunk.globalGet(globalX, globalY, globalZ);
+        return new TileInstance(chunk, globalX, globalY, globalZ);
     }
 
     private Chunk getChunkThatContains(int globalX, int globalY, int globalZ) {
@@ -242,30 +251,30 @@ public class TileWorld implements Disposable {
         public final int x, y, z; // global
 
         // TODO also store metadata
-        private int tileId; // replace with Tile
+        private Tile tile;
         private final Chunk source;
 
-        private TileInstance(Chunk source, int x, int y, int z, int tileId) {
+        private TileInstance(Chunk source, int globalX, int globalY, int globalZ, Tile tile) {
 
             this.source = source;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.tileId = tileId;
-        } 
-
-        private TileInstance(Chunk source, int x, int y, int z) {
-            this(source, x, y, z, source.globalGet(x, y, z));
+            this.x = globalX;
+            this.y = globalY;
+            this.z = globalZ;
+            this.tile = tile;
         }
 
-        public int get() {
-            return tileId;
+        private TileInstance(Chunk source, int globalX, int globalY, int globalZ) {
+            this(source, globalX, globalY, globalZ, ModLoader.tiles[source.globalGet(globalX, globalY, globalZ)]);
         }
 
-        public void set(int tileId) {
+        public Tile getTile() {
+            return tile;
+        }
 
-            this.tileId = tileId;
-            source.globalSet(tileId, x, y, z);
+        public void setTile(String id) {
+
+            tile = ModLoader.idToTile.get(id);
+            source.globalSet(tile.index, x, y, z);
         }
     }
 
